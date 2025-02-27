@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "EmployeeService\\EmployeeService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "DepartmentService\\DepartmentService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "EmployeeWebAPI\\EmployeeWebAPI.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
