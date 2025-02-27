@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeWebAPI", "EmployeeW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeUI", "EmployeeUI\EmployeeUI.csproj", "{75F15475-DD89-4F27-87F9-E3E2094C7B2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeWebAPI.UnitTests", "EmployeeWebAPI.UnitTests\EmployeeWebAPI.UnitTests.csproj", "{97E051A9-E032-4BCD-95D7-30FE747B0465}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{75F15475-DD89-4F27-87F9-E3E2094C7B2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75F15475-DD89-4F27-87F9-E3E2094C7B2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75F15475-DD89-4F27-87F9-E3E2094C7B2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97E051A9-E032-4BCD-95D7-30FE747B0465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97E051A9-E032-4BCD-95D7-30FE747B0465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97E051A9-E032-4BCD-95D7-30FE747B0465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97E051A9-E032-4BCD-95D7-30FE747B0465}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
