@@ -19,6 +19,10 @@ public class EmployeeController : ControllerBase
         _validator = validator;
     }
 
+    /// <summary>
+    /// Retrieves a list of employees along with their department details.
+    /// </summary>
+    /// <returns>A list of employees with department details.</returns>
     [HttpGet]
     public async Task<IActionResult> GetEmployees()
     {
@@ -44,6 +48,10 @@ public class EmployeeController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Retrieves a list of departments.
+    /// </summary>
+    /// <returns>A list of departments.</returns>
     [HttpGet("departments")]
     public async Task<IActionResult> GetDepartments()
     {
@@ -58,6 +66,11 @@ public class EmployeeController : ControllerBase
         return Ok(departments);
     }
 
+    /// <summary>
+    /// Creates a new employee.
+    /// </summary>
+    /// <param name="employee">The employee to create.</param>
+    /// <returns>The created employee.</returns>
     [HttpPost]
     public async Task<IActionResult> CreateEmployee(Employee employee)
     {
@@ -71,6 +84,12 @@ public class EmployeeController : ControllerBase
         return response.IsSuccessStatusCode ? CreatedAtAction(nameof(GetEmployees), new { id = employee.Id }, employee) : BadRequest("Failed to create employee.");
     }
 
+    /// <summary>
+    /// Updates an existing employee.
+    /// </summary>
+    /// <param name="id">The ID of the employee to update.</param>
+    /// <param name="employee">The updated employee details.</param>
+    /// <returns>No content if the update is successful.</returns>
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateEmployee(int id, Employee employee)
     {
@@ -86,6 +105,11 @@ public class EmployeeController : ControllerBase
         return response.IsSuccessStatusCode ? NoContent() : BadRequest("Failed to update employee.");
     }
 
+    /// <summary>
+    /// Deletes an employee.
+    /// </summary>
+    /// <param name="id">The ID of the employee to delete.</param>
+    /// <returns>No content if the deletion is successful.</returns>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteEmployee(int id)
     {
