@@ -1,0 +1,83 @@
+﻿@page "/employees"
+@inject EmployeeService EmployeeService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudTable Items="employees" Hover="true" Bordered="true" Striped="true">
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Department</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Employee ID">@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+        <MudTd>
+            <MudButton Color="Color.Primary" OnClick="@(() => OpenEditDialog(context))">Edit</MudButton>
+            <MudButton Color="Color.Error" OnClick="@(() => DeleteEmployee(context.Id))">Delete</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudButton Color="Color.Primary" OnClick="OpenCreateDialog">Add Employee</MudButton>
+
+@code {
+    private List<EmployeeModel> employees = new List<EmployeeModel>();
+    private List<DepartmentModel> departments = new List<DepartmentModel>();
+    private EmployeeModel employeeDto = new EmployeeModel();
+    private bool isDialogOpen = false;
+    private bool isEditMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load employees and departments
+        employees = await EmployeeService.GetEmployeesAsync();
+        departments = await EmployeeService.GetDepartmentsAsync();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        employeeDto = new EmployeeModel(); // Clear existing data for new employee
+        isEditMode = false;
+        // Open the dialog for employee creation
+        var parameters = new DialogParameters { ["EmployeeDto"] = employeeDto, ["Departments"] = departments };
+        var dialog = await DialogService.ShowAsync<EmployeeDialog>("Create Employee", parameters);
+
+        // if (!dialog.)
+        // {
+        //     employees = await EmployeeService.GetEmployeesAsync(); // Refresh employee list
+        //     Snackbar.Add("Employee created successfully!", Severity.Success);
+        // }
+    }
+
+    private async Task OpenEditDialog(EmployeeModel employee)
+    {
+        employeeDto = new EmployeeModel
+        {
+            Id = employee.Id,
+            Name = employee.Name,
+            DepartmentId = employee.DepartmentId
+        };
+        isEditMode = true;
+
+        // Open the dialog for editing the employee
+        var parameters = new DialogParameters { ["EmployeeDto"] = employeeDto, ["Departments"] = departments };
+        var dialog = await DialogService.ShowAsync<EmployeeDialog>("Edit Employee", parameters);
+        // var result = await dialog.Result;
+
+        // if (!result.Cancelled)
+        // {
+        //     employees = await EmployeeService.GetEmployeesAsync(); // Refresh employee list
+        //     Snackbar.Add("Employee updated successfully!", Severity.Success);
+        // }
+    }
+
+    private async Task DeleteEmployee(int id)
+    {
+        await EmployeeService.DeleteEmployeeAsync(id);
+        employees = await EmployeeService.GetEmployeesAsync(); // Refresh the list
+        Snackbar.Add("Employee deleted successfully!", Severity.Success);
+    }
+}

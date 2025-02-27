@@ -44,6 +44,20 @@ public class EmployeeController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("departments")]
+    public async Task<IActionResult> GetDepartments()
+    {
+        using var departmentClient = _httpClientFactory.CreateClient(HttpClientNames.DepartmentService);
+        var departments = await departmentClient.GetFromJsonAsync<List<Department>>("");
+
+        if (departments == null)
+        {
+            return NotFound("Departments not found.");
+        }
+
+        return Ok(departments);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateEmployee(Employee employee)
     {

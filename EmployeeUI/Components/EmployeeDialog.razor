@@ -1,0 +1,48 @@
+﻿@inject EmployeeService EmployeeService
+
+<MudDialog>
+    <TitleContent>
+        Dialog Title
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@EmployeeDto" OnValidSubmit="SaveEmployee">
+            <MudTextField Label="Name" @bind-Value="EmployeeDto.Name" Required="true" />
+            <MudSelect Label="Department" @bind-Value="EmployeeDto.DepartmentId" Required="true">
+                @foreach (var department in Departments)
+                {
+                    <MudSelectItem Value="@department.Id">@department.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudButton Color="Color.Primary" Type="Submit">Save</MudButton>
+            <MudButton Color="Color.Secondary" OnClick="CancelDialog">Cancel</MudButton>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public EmployeeModel EmployeeDto { get; set; }
+    [Parameter] public List<DepartmentModel> Departments { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private async Task SaveEmployee()
+    {
+        if (EmployeeDto.Id > 0)
+        {
+            await EmployeeService.UpdateEmployeeAsync(EmployeeDto.Id, EmployeeDto);
+        }
+        else
+        {
+            await EmployeeService.CreateEmployeeAsync(EmployeeDto);
+        }
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void CancelDialog()
+    {
+        MudDialog.Cancel();
+    }
+}
