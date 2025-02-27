@@ -28,16 +28,19 @@ List<Employee> employees =
 
 app.MapGet("/api/employees", async () =>
 {
-    await Task.Delay(2000);
+    await Task.Delay(1000);
 
     return Results.Ok(employees);
 });
 
 app.MapPost("/api/employees", (Employee emp) =>
 {
-    employees.Add(emp);
 
-    return Results.Ok(emp);
+    var newEmp = emp with { Id = employees.Max(e => e.Id) + 1 };
+
+    employees.Add(newEmp);
+
+    return Results.Ok(newEmp);
 });
 
 app.MapPut("/api/employees/{id:int}", (int id, Employee emp) =>

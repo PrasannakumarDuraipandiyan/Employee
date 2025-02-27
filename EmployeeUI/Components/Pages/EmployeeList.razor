@@ -1,83 +1,175 @@
-﻿@page "/employees"
+﻿@page "/"
+@page "/employees"
 @inject EmployeeService EmployeeService
 @inject ISnackbar Snackbar
-@inject IDialogService DialogService
+@using EmployeeUI.Model
+@using MudBlazor
 
-<MudTable Items="employees" Hover="true" Bordered="true" Striped="true">
+<PageTitle>Employees</PageTitle>
+
+<MudProgressCircular Indeterminate="true" Style="position: absolute; top: 50%; left: 50%;" Color="Color.Primary" Size="Size.Large" Class="@(isLoading ? "" : "d-none")" />
+
+<MudTable @ref="@_table" RowsPerPage="5" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info" Items="@employees" Striped="true" Bordered="true" Hover="true" Filterable="true" Class="@(isLoading ? "d-none" : "")">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">Add Employee</MudButton>
+    </ToolBarContent>
     <HeaderContent>
-        <MudTh>ID</MudTh>
+        <MudTh>Id</MudTh>
         <MudTh>Name</MudTh>
         <MudTh>Department</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Employee ID">@context.Id</MudTd>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
         <MudTd DataLabel="Name">@context.Name</MudTd>
         <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
-        <MudTd>
-            <MudButton Color="Color.Primary" OnClick="@(() => OpenEditDialog(context))">Edit</MudButton>
-            <MudButton Color="Color.Error" OnClick="@(() => DeleteEmployee(context.Id))">Delete</MudButton>
+        <MudTd DataLabel="Actions">
+            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => OpenEditDialog(@context))">Edit</MudButton>
+            <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => OpenDeleteDialog(@context.Id))">Delete</MudButton>
         </MudTd>
     </RowTemplate>
+    <PagerContent>
+        <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+    </PagerContent>
 </MudTable>
 
-<MudButton Color="Color.Primary" OnClick="OpenCreateDialog">Add Employee</MudButton>
+<MudDialog @ref="createEditDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Add/Update Employee
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField Label="Employee Name" @bind-Value="employeeModel.Name" Required="true"
+                      MaxLength="50"
+                      RequiredError="Name is required." />
+
+        <MudSelect Label="Department" @bind-Value="employeeModel.DepartmentId" Required="true"
+                   RequiredError="Department is required.">
+
+            <MudSelectItem Value="0">--Select--</MudSelectItem>
+            @foreach (var department in departments)
+            {
+                <MudSelectItem Value="@department.Id">@department.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveEmployee" Disabled="string.IsNullOrWhiteSpace(employeeModel.Name) || employeeModel.Name.Length > 50 || employeeModel.DepartmentId == 0">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @ref="deleteDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Delete employee?
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>Are you sure you want to delete this employee?</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="CloseDeleteDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteEmployee">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     private List<EmployeeModel> employees = new List<EmployeeModel>();
     private List<DepartmentModel> departments = new List<DepartmentModel>();
-    private EmployeeModel employeeDto = new EmployeeModel();
-    private bool isDialogOpen = false;
-    private bool isEditMode = false;
+    private EmployeeModel employeeModel = new EmployeeModel();
+    private MudDialog createEditDialog;
+    private MudDialog deleteDialog;
+    private int? employeeIdToDelete;
+    private bool isLoading = false;
+
+    private MudTable<EmployeeModel> _table;
 
     protected override async Task OnInitializedAsync()
     {
-        // Load employees and departments
-        employees = await EmployeeService.GetEmployeesAsync();
-        departments = await EmployeeService.GetDepartmentsAsync();
+        isLoading = true;
+        await LoadEmployees();
+        await LoadDepartments();
+        isLoading = false;
+    }
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
     }
 
     private async Task OpenCreateDialog()
     {
-        employeeDto = new EmployeeModel(); // Clear existing data for new employee
-        isEditMode = false;
-        // Open the dialog for employee creation
-        var parameters = new DialogParameters { ["EmployeeDto"] = employeeDto, ["Departments"] = departments };
-        var dialog = await DialogService.ShowAsync<EmployeeDialog>("Create Employee", parameters);
-
-        // if (!dialog.)
-        // {
-        //     employees = await EmployeeService.GetEmployeesAsync(); // Refresh employee list
-        //     Snackbar.Add("Employee created successfully!", Severity.Success);
-        // }
+        employeeModel = new EmployeeModel(); // Clear the model for new employee
+        await createEditDialog.ShowAsync();
     }
 
     private async Task OpenEditDialog(EmployeeModel employee)
     {
-        employeeDto = new EmployeeModel
-        {
-            Id = employee.Id,
-            Name = employee.Name,
-            DepartmentId = employee.DepartmentId
-        };
-        isEditMode = true;
-
-        // Open the dialog for editing the employee
-        var parameters = new DialogParameters { ["EmployeeDto"] = employeeDto, ["Departments"] = departments };
-        var dialog = await DialogService.ShowAsync<EmployeeDialog>("Edit Employee", parameters);
-        // var result = await dialog.Result;
-
-        // if (!result.Cancelled)
-        // {
-        //     employees = await EmployeeService.GetEmployeesAsync(); // Refresh employee list
-        //     Snackbar.Add("Employee updated successfully!", Severity.Success);
-        // }
+        employeeModel = employee; // Populate the model for editing
+        await createEditDialog.ShowAsync();
     }
 
-    private async Task DeleteEmployee(int id)
+    private async Task OpenDeleteDialog(int id)
     {
-        await EmployeeService.DeleteEmployeeAsync(id);
-        employees = await EmployeeService.GetEmployeesAsync(); // Refresh the list
-        Snackbar.Add("Employee deleted successfully!", Severity.Success);
+        employeeIdToDelete = id;
+        await deleteDialog.ShowAsync();
+    }
+
+    private async Task CloseDialog()
+    {
+        await createEditDialog.CloseAsync();
+    }
+
+    private async Task CloseDeleteDialog()
+    {
+        await deleteDialog.CloseAsync();
+    }
+
+    private async Task SaveEmployee()
+    {
+        if (string.IsNullOrWhiteSpace(employeeModel.Name) || employeeModel.Name.Length > 50 || employeeModel.DepartmentId == 0)
+        {
+            return;
+        }
+
+        await createEditDialog.CloseAsync(); // Close first
+        isLoading = true;
+        if (employeeModel.Id == 0) // Create new employee
+        {
+            await EmployeeService.CreateEmployeeAsync(employeeModel);
+            Snackbar.Add("Employee added successfully", Severity.Success);
+        }
+        else // Update existing employee
+        {
+            await EmployeeService.UpdateEmployeeAsync(employeeModel.Id, employeeModel);
+            Snackbar.Add("Employee updated successfully", Severity.Success);
+        }
+        await LoadEmployees();
+        isLoading = false;
+    }
+
+    private async Task DeleteEmployee()
+    {
+        if (employeeIdToDelete.HasValue)
+        {
+            await deleteDialog.CloseAsync(); // Close first
+            isLoading = true;
+            await EmployeeService.DeleteEmployeeAsync(employeeIdToDelete.Value);
+            Snackbar.Add("Employee deleted successfully", Severity.Success);
+            await LoadEmployees();
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadEmployees()
+    {
+        employees = await EmployeeService.GetEmployeesAsync();
+    }
+
+    private async Task LoadDepartments()
+    {
+        departments = await EmployeeService.GetDepartmentsAsync();
     }
 }
